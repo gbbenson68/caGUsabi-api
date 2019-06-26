@@ -1,13 +1,26 @@
 const mongoose = require('mongoose')
 
 const uploadSchema = new mongoose.Schema({
-  description: {
+  name: {
     type: String,
     required: false
   },
   url: {
     type: String,
     required: true
+  },
+  description: {
+    type: String,
+    required: false
+  },
+  owner: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    required: false
+  },
+  tag: {
+    type: String,
+    required: false
   }
 
 }, {
