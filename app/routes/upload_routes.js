@@ -7,6 +7,9 @@ const { s3Upload, createParams, promiseReadFile } = require('../../lib/promiseS3
 const customErrors = require('../../lib/custom_errors')
 const handle404 = customErrors.handle404
 const removeBlanks = require('../../lib/remove_blank_fields')
+const requireOwnership = customErrors.requireOwnership
+const passport = require('passport')
+const requireToken = passport.authenticate('bearer', { session: false })
 
 console.log(createParams)
 
@@ -21,10 +24,16 @@ router.post('/uploads', multerUpload.single('file'), (req, res, next) => {
     .then(s3Response => Upload.create({
       url: s3Response.Location,
       name: req.body.name,
-      description: req.body.description
+      description: req.body.description,
+      owner: req.body.owner
     }))
     .then(upload => {
-      res.status(201).json({ upload: upload.toObject() })
+      const uploadObject = upload.toObject()
+      uploadObject.editable = true
+      return uploadObject
+    })
+    .then(uploadObject => {
+      res.status(201).json({ upload: uploadObject })
     })
     .catch(next)
 })
@@ -47,12 +56,12 @@ router.get('/uploads', (req, res, next) => {
 
 // DESTROY
 // DELETE /examples/5a7db6c74d55bc51bdf39793
-router.delete('/uploads/:id', (req, res, next) => {
+router.delete('/uploads/:id', requireToken, (req, res, next) => {
   Upload.findById(req.params.id)
     .then(handle404)
     .then(upload => {
       // throw an error if current user doesn't own `example`
-      // requireOwnership(req, upload)
+      requireOwnership(req, upload)
       // delete the example ONLY IF the above didn't throw
       upload.remove()
     })
@@ -64,7 +73,7 @@ router.delete('/uploads/:id', (req, res, next) => {
 
 // UPDATE
 // PATCH /examples/5a7db6c74d55bc51bdf39793
-router.patch('/uploads/:id', removeBlanks, (req, res, next) => {
+router.patch('/uploads/:id', requireToken, removeBlanks, (req, res, next) => {
   // if the client attempts to change the `owner` property by including a new
   // owner, prevent that by deleting that key/value pair
   delete req.body.upload.owner
@@ -74,7 +83,7 @@ router.patch('/uploads/:id', removeBlanks, (req, res, next) => {
     .then(upload => {
       // pass the `req` object and the Mongoose record to `requireOwnership`
       // it will throw an error if the current user isn't the owner
-      // requireOwnership(req, example)
+      requireOwnership(req, upload)
 
       // pass the result of Mongoose's `.update` to the next `.then`
       return upload.update(req.body.upload)
