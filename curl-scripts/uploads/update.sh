@@ -10,7 +10,7 @@ curl "${API}${URL_PATH}/${ID}" \
   --data '{
     "upload": {
       "name": "'"${NAME}"'",
-      "description": "'"${NAME}"'"
+      "description": "'"${DESC}"'"
     }
   }'
 
