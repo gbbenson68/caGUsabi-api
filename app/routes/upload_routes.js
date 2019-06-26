@@ -1,4 +1,3 @@
-
 const express = require('express')
 const Upload = require('../models/upload')
 const multer = require('multer')
@@ -21,11 +20,21 @@ router.post('/uploads', multerUpload.single('file'), (req, res, next) => {
     })
     .catch(next)
 })
-//   Upload.create(req.body.example)
-//
-//     .then(upload => {
-//     })
-//     .catch(next)
-// })
+
+// INDEX
+// GET /examples
+router.get('/uploads', (req, res, next) => {
+  Upload.find()
+    .then(uploads => {
+      // `examples` will be an array of Mongoose documents
+      // we want to convert each one to a POJO, so we use `.map` to
+      // apply `.toObject` to each one
+      return uploads.map(upload => upload.toObject())
+    })
+    // respond with status 200 and JSON of the examples
+    .then(uploads => res.status(200).json({ uploads: uploads }))
+    // if an error occurs, pass it to the handler
+    .catch(next)
+})
 
 module.exports = router
