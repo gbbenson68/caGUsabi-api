@@ -34,7 +34,7 @@ app.use(cors({ origin: process.env.CLIENT_ORIGIN || 'http://localhost:7165' }))
 
 app.use((req, res, next) => {
   console.log('==================')
-  console.log(req)
+  // console.log(req)
   console.log('==================')
   next()
 })
