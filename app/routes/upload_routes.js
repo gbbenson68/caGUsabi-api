@@ -48,13 +48,24 @@ router.post('/uploads', multerUpload.single('file'), requireToken, (req, res, ne
 
 // INDEX
 // GET /examples
-router.get('/uploads', (req, res, next) => {
-  Upload.find()
+router.get('/uploads', requireToken, (req, res, next) => {
+  Upload.find().populate('owner')
     .then(uploads => {
       // `examples` will be an array of Mongoose documents
       // we want to convert each one to a POJO, so we use `.map` to
       // apply `.toObject` to each one
       return uploads.map(upload => upload.toObject())
+    })
+    .then(uploads => {
+      uploads.map(upload => {
+        // const imageObj = image.toObject()
+        if (JSON.stringify(req.user._id) === JSON.stringify(upload.owner._id)) {
+          upload.editable = true
+        } else {
+          upload.editable = false
+        }
+      })
+      return uploads
     })
     // respond with status 200 and JSON of the examples
     .then(uploads => res.status(200).json({
