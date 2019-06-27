@@ -19,13 +19,10 @@ const requireToken = passport.authenticate('bearer', {
   session: false
 })
 
-console.log(createParams)
-
 // CREATE
 // POST /examples
 router.post('/uploads', multerUpload.single('file'), requireToken, (req, res, next) => {
   req.body.owner = req.user._id
-  console.log("USER", req.user)
   promiseReadFile(req.file)
     .then(createParams)
     .then(s3Upload)
@@ -89,7 +86,6 @@ router.delete('/uploads/:id', requireToken, (req, res, next) => {
 router.patch('/uploads/:id', requireToken, removeBlanks, (req, res, next) => {
   // if the client attempts to change the `owner` property by including a new
   // owner, prevent that by deleting that key/value pair
-  console.log(req.body, req.params.id)
   delete req.body.upload.owner
 
   Upload.findById(req.params.id)
