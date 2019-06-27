@@ -15,9 +15,12 @@ console.log(createParams)
 
 // CREATE
 // POST /examples
-router.post('/uploads', multerUpload.single('file'), (req, res, next) => {
-  console.log(req.file)
-  console.log(req.body)
+router.post('/uploads', multerUpload.single('file'), requireToken, (req, res, next) => {
+  req.body.owner = req.user._id
+  console.log(req.user)
+  // console.log(req)
+  // console.log(req.file)
+  // console.log(req.body)
   promiseReadFile(req.file)
     .then(createParams)
     .then(s3Upload)
@@ -25,7 +28,8 @@ router.post('/uploads', multerUpload.single('file'), (req, res, next) => {
       url: s3Response.Location,
       name: req.body.name,
       description: req.body.description,
-      owner: req.body.owner
+      tags: req.body.tags,
+      owner_id: req.body.owner
     }))
     .then(upload => {
       const uploadObject = upload.toObject()
@@ -76,7 +80,11 @@ router.delete('/uploads/:id', requireToken, (req, res, next) => {
 router.patch('/uploads/:id', requireToken, removeBlanks, (req, res, next) => {
   // if the client attempts to change the `owner` property by including a new
   // owner, prevent that by deleting that key/value pair
-  delete req.body.upload.owner
+  console.log('Req')
+  console.log(req)
+  console.log('Res')
+  console.log(res)
+  delete req.body.owner
 
   Upload.findById(req.params.id)
     .then(handle404)
@@ -86,7 +94,7 @@ router.patch('/uploads/:id', requireToken, removeBlanks, (req, res, next) => {
       requireOwnership(req, upload)
 
       // pass the result of Mongoose's `.update` to the next `.then`
-      return upload.update(req.body.upload)
+      return upload.update(req.body)
     })
     // if that succeeded, return 204 and no JSON
     .then(() => res.sendStatus(204))

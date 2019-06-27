@@ -13,12 +13,12 @@ const uploadSchema = new mongoose.Schema({
     type: String,
     required: false
   },
-  owner: {
+  owner_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: false
+    required: true
   },
-  tag: {
+  tags: {
     type: String,
     required: false
   }
