@@ -1,23 +1,31 @@
 const express = require('express')
 const Upload = require('../models/upload')
 const multer = require('multer')
-const multerUpload = multer({ dest: 'tempFiles/' })
+const multerUpload = multer({
+  dest: 'tempFiles/'
+})
 const router = express.Router()
-const { s3Upload, createParams, promiseReadFile } = require('../../lib/promiseS3Upload.js')
+const {
+  s3Upload,
+  createParams,
+  promiseReadFile
+} = require('../../lib/promiseS3Upload.js')
 const customErrors = require('../../lib/custom_errors')
 const handle404 = customErrors.handle404
 const removeBlanks = require('../../lib/remove_blank_fields')
 const requireOwnership = customErrors.requireOwnership
 const passport = require('passport')
-const requireToken = passport.authenticate('bearer', { session: false })
+const requireToken = passport.authenticate('bearer', {
+  session: false
+})
 
 console.log(createParams)
 
 // CREATE
 // POST /examples
-router.post('/uploads', multerUpload.single('file'), (req, res, next) => {
-  console.log(req.file)
-  console.log(req.body)
+router.post('/uploads', multerUpload.single('file'), requireToken, (req, res, next) => {
+  req.body.owner = req.user._id
+  console.log("USER", req.user)
   promiseReadFile(req.file)
     .then(createParams)
     .then(s3Upload)
@@ -25,6 +33,7 @@ router.post('/uploads', multerUpload.single('file'), (req, res, next) => {
       url: s3Response.Location,
       name: req.body.name,
       description: req.body.description,
+      tags: req.body.tags,
       owner: req.body.owner
     }))
     .then(upload => {
@@ -33,7 +42,9 @@ router.post('/uploads', multerUpload.single('file'), (req, res, next) => {
       return uploadObject
     })
     .then(uploadObject => {
-      res.status(201).json({ upload: uploadObject })
+      res.status(201).json({
+        upload: uploadObject
+      })
     })
     .catch(next)
 })
@@ -49,7 +60,9 @@ router.get('/uploads', (req, res, next) => {
       return uploads.map(upload => upload.toObject())
     })
     // respond with status 200 and JSON of the examples
-    .then(uploads => res.status(200).json({ uploads: uploads }))
+    .then(uploads => res.status(200).json({
+      uploads: uploads
+    }))
     // if an error occurs, pass it to the handler
     .catch(next)
 })
@@ -76,6 +89,7 @@ router.delete('/uploads/:id', requireToken, (req, res, next) => {
 router.patch('/uploads/:id', requireToken, removeBlanks, (req, res, next) => {
   // if the client attempts to change the `owner` property by including a new
   // owner, prevent that by deleting that key/value pair
+  console.log(req.body, req.params.id)
   delete req.body.upload.owner
 
   Upload.findById(req.params.id)

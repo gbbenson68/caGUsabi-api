@@ -16,9 +16,9 @@ const uploadSchema = new mongoose.Schema({
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: false
+    required: true
   },
-  tag: {
+  tags: {
     type: String,
     required: false
   }
