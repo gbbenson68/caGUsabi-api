@@ -31,7 +31,8 @@ router.post('/uploads', multerUpload.single('file'), requireToken, (req, res, ne
       name: req.body.name,
       description: req.body.description,
       tags: req.body.tags,
-      owner: req.body.owner
+      owner: req.body.owner,
+      email: req.user.email
     }))
     .then(upload => {
       const uploadObject = upload.toObject()
@@ -58,7 +59,6 @@ router.get('/uploads', requireToken, (req, res, next) => {
     })
     .then(uploads => {
       uploads.map(upload => {
-        // const imageObj = image.toObject()
         if (JSON.stringify(req.user._id) === JSON.stringify(upload.owner._id)) {
           upload.editable = true
         } else {

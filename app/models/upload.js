@@ -18,6 +18,10 @@ const uploadSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  email: {
+    type: String,
+    required: true
+  },
   tags: {
     type: String,
     required: false
