@@ -1,7 +1,7 @@
 'use strict'
 
 // creating a base name for the mongodb
-const mongooseBaseName = 'cagusabi-api'
+const mongooseBaseName = 'my-cagusabi-api'
 
 // create the mongodb uri for development and test
 const database = {
